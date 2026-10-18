@@ -1,0 +1,19 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Supabase local state
+supabase/.temp
+supabase/.branches
+supabase/signing_keys.json
+
+# Node
+node_modules
+dist
+*.log
+
+# Editor / OS
+.vscode
+.idea
+.DS_Store
