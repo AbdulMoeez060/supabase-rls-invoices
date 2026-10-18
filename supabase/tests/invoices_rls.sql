@@ -3,6 +3,8 @@
 -- Everything runs in one transaction and is rolled back.
 
 begin;
+create extension if not exists pgtap with schema extensions;
+set local search_path = public, extensions;
 select plan(16);
 
 insert into auth.users (id, aud, role, email)
@@ -81,7 +83,7 @@ select results_eq(
 
 -- A's data is untouched
 
-reset role;
+set local role postgres;
 
 select results_eq(
   $$ select amount_cents, user_id from public.invoices where id = '11111111-1111-4111-8111-111111111111' $$,
