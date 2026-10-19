@@ -3,6 +3,7 @@ import { supabase, type Invoice } from '../lib/supabase'
 import { addDaysISO } from '../lib/invoices'
 import { GoogleIcon } from './GoogleIcon'
 import { PaperView } from './InvoicePaper'
+import { ThemeToggle } from './ThemeToggle'
 
 const SAMPLE: Invoice = {
   id: '7c41e2a0-0000-4000-8000-000000000000',
@@ -37,6 +38,7 @@ export function SignIn() {
 
   return (
     <div className="signin">
+      <ThemeToggle className="signin-theme" />
       <section className="signin-copy">
         <span className="wordmark">Remit</span>
         <h1>Invoices for your clients, visible only to you.</h1>

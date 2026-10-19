@@ -13,6 +13,7 @@ import {
 import { useInvoices } from '../hooks/useInvoices'
 import { PaperEditor, PaperView, type Party } from './InvoicePaper'
 import { StatusPill } from './Stamp'
+import { ThemeToggle } from './ThemeToggle'
 import { useToast } from './toast'
 
 type Filter = 'all' | DisplayStatus
@@ -160,6 +161,7 @@ export function Invoices({ session }: { session: Session }) {
             <img src={user.user_metadata.avatar_url} alt="" referrerPolicy="no-referrer" />
           )}
           <span className="account-email">{user.email}</span>
+          <ThemeToggle />
           <button className="btn btn-quiet btn-small" onClick={() => supabase.auth.signOut()}>
             Sign out
           </button>
