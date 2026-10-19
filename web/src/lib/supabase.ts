@@ -27,11 +27,5 @@ export type Invoice = {
 
 export type InvoiceInput = Pick<
   Invoice,
-  'customer_name' | 'customer_email' | 'description' | 'amount_cents' | 'currency' | 'status' | 'due_date'
+  'customer_name' | 'customer_email' | 'description' | 'amount_cents' | 'currency' | 'due_date'
 >
-
-export function formatMoney(cents: number, currency: string) {
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency: currency.toUpperCase() }).format(
-    cents / 100,
-  )
-}

@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { SignIn } from './components/SignIn'
 import { Invoices } from './components/Invoices'
+import { Toaster } from './components/Toaster'
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null)
@@ -20,7 +21,7 @@ export default function App() {
     return () => data.subscription.unsubscribe()
   }, [])
 
-  if (loading) return <main className="center muted">Loading…</main>
+  if (loading) return <div className="boot" aria-busy="true" />
 
-  return session ? <Invoices session={session} /> : <SignIn />
+  return <Toaster>{session ? <Invoices key={session.user.id} session={session} /> : <SignIn />}</Toaster>
 }

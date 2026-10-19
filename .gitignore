@@ -17,3 +17,6 @@ dist
 .vscode
 .idea
 .DS_Store
+
+# Playwright MCP output
+.playwright-mcp
