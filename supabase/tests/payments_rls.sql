@@ -24,7 +24,7 @@ select set_config('request.jwt.claims', '{"sub":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbb
 
 select throws_ok(
   $$ select public.simulate_payment('11111111-1111-4111-8111-111111111111') $$,
-  'P0002',
+  'PT404',
   'Invoice not found',
   'B cannot pay A''s invoice'
 );
