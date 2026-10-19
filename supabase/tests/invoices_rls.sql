@@ -95,12 +95,13 @@ select results_eq(
 
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","role":"authenticated"}', true);
+update public.invoices set status = 'open' where id = '11111111-1111-4111-8111-111111111111';
 
 select throws_ok(
   $$ update public.invoices set status = 'paid' where id = '11111111-1111-4111-8111-111111111111' $$,
   '42501',
   null,
-  'A cannot mark their own invoice as paid'
+  'A cannot mark their own open invoice as paid'
 );
 
 set local role service_role;
