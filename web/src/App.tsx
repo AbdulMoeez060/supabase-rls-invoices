@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { SignIn } from './components/SignIn'
 import { Invoices } from './components/Invoices'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { Toaster } from './components/Toaster'
 
 export default function App() {
@@ -23,5 +24,9 @@ export default function App() {
 
   if (loading) return <div className="boot" aria-busy="true" />
 
-  return <Toaster>{session ? <Invoices key={session.user.id} session={session} /> : <SignIn />}</Toaster>
+  return (
+    <ErrorBoundary>
+      <Toaster>{session ? <Invoices key={session.user.id} session={session} /> : <SignIn />}</Toaster>
+    </ErrorBoundary>
+  )
 }

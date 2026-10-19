@@ -49,11 +49,17 @@ export function useInvoices(userId: string) {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'invoices' },
         (payload: RealtimePostgresChangesPayload<Invoice>) => {
+          // Realtime sends an empty record with `errors` when it can't authorize a change.
+          // Fall back to a fresh fetch instead of merging a partial row.
+          if (payload.errors?.length) console.warn('Realtime change arrived with errors:', payload.errors)
           if (payload.eventType === 'DELETE') {
             const id = payload.old.id
-            setInvoices((prev) => prev.filter((i) => i.id !== id))
-          } else {
+            if (id) setInvoices((prev) => prev.filter((i) => i.id !== id))
+            else reload()
+          } else if (payload.new.id && payload.new.created_at) {
             setInvoices((prev) => upsert(prev, payload.new))
+          } else {
+            reload()
           }
         },
       )
