@@ -679,6 +679,18 @@ kbd {
   color: var(--ink-soft);
 }
 
+.receipt {
+  margin-top: -1rem;
+  font-size: 0.875rem;
+  color: var(--paid);
+  overflow-wrap: anywhere;
+}
+
+.receipt span {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
 /* The rubber stamp */
 
 .paper:has(.stamp) {

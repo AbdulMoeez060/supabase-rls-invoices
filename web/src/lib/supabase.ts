@@ -11,6 +11,15 @@ export const supabase = createClient(url, key)
 
 export type InvoiceStatus = 'draft' | 'open' | 'paid' | 'void'
 
+export type Payment = {
+  id: string
+  invoice_id: string
+  amount_cents: number
+  currency: string
+  reference: string
+  created_at: string
+}
+
 export type Invoice = {
   id: string
   user_id: string
@@ -23,6 +32,7 @@ export type Invoice = {
   due_date: string | null
   created_at: string
   updated_at: string
+  payment?: Payment | null
 }
 
 export type InvoiceInput = Pick<

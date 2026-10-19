@@ -37,7 +37,7 @@ export function Invoices({ session }: { session: Session }) {
     email: user.email ?? '',
   }
 
-  const { invoices, state, loadError, reload, create, update, remove } = useInvoices(user.id)
+  const { invoices, state, loadError, reload, create, update, remove, pay } = useInvoices(user.id)
   const notify = useToast()
 
   const [filter, setFilter] = useState<Filter>('all')
@@ -46,6 +46,7 @@ export function Invoices({ session }: { session: Session }) {
   const [mode, setMode] = useState<Mode>('view')
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [paying, setPaying] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
 
   const selected = invoices.find((i) => i.id === selectedId) ?? null
@@ -133,6 +134,18 @@ export function Invoices({ session }: { session: Session }) {
       notify(message)
     } catch (error) {
       notify(errorMessage(error), 'error')
+    }
+  }
+
+  async function simulatePayment(invoice: Invoice) {
+    setPaying(true)
+    try {
+      await pay(invoice.id)
+      notify('Payment recorded')
+    } catch (error) {
+      notify(errorMessage(error), 'error')
+    } finally {
+      setPaying(false)
     }
   }
 
@@ -301,10 +314,12 @@ export function Invoices({ session }: { session: Session }) {
             <Actions
               invoice={selected}
               confirmDelete={confirmDelete}
+              paying={paying}
               onEdit={() => setMode('edit')}
               onFinalize={() => changeStatus(selected, 'open', 'Invoice finalized')}
               onVoid={() => changeStatus(selected, 'void', 'Invoice voided')}
               onDelete={() => deleteDraft(selected)}
+              onPay={() => simulatePayment(selected)}
             />
           </div>
         ) : (
@@ -335,13 +350,15 @@ export function Invoices({ session }: { session: Session }) {
 type ActionsProps = {
   invoice: Invoice
   confirmDelete: boolean
+  paying: boolean
   onEdit: () => void
   onFinalize: () => void
   onVoid: () => void
   onDelete: () => void
+  onPay: () => void
 }
 
-function Actions({ invoice, confirmDelete, onEdit, onFinalize, onVoid, onDelete }: ActionsProps) {
+function Actions({ invoice, confirmDelete, paying, onEdit, onFinalize, onVoid, onDelete, onPay }: ActionsProps) {
   if (invoice.status === 'paid') {
     return <p className="toolbar toolbar-note">Paid invoices are locked and can't be edited.</p>
   }
@@ -354,7 +371,7 @@ function Actions({ invoice, confirmDelete, onEdit, onFinalize, onVoid, onDelete 
       <span className="hint">
         {invoice.status === 'draft'
           ? 'Finalize this draft when it is ready to send.'
-          : 'Payment status is updated by the server when the client pays.'}
+          : 'Simulates the payment provider confirming that the client paid.'}
       </span>
       <div className="toolbar-actions">
         {invoice.status === 'draft' ? (
@@ -369,9 +386,13 @@ function Actions({ invoice, confirmDelete, onEdit, onFinalize, onVoid, onDelete 
         <button className="btn btn-quiet" onClick={onEdit}>
           Edit
         </button>
-        {invoice.status === 'draft' && (
+        {invoice.status === 'draft' ? (
           <button className="btn btn-primary" onClick={onFinalize}>
             Finalize
+          </button>
+        ) : (
+          <button className="btn btn-primary" onClick={onPay} disabled={paying}>
+            {paying ? 'Processing payment�' : 'Simulate payment'}
           </button>
         )}
       </div>

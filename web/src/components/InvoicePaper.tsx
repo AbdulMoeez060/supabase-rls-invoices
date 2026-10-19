@@ -72,6 +72,12 @@ export function PaperView({ invoice, from }: ViewProps) {
           </tr>
         </tfoot>
       </table>
+
+      {invoice.payment && (
+        <p className="receipt">
+          Paid in full on {formatDate(invoice.payment.created_at)}, reference <span>{invoice.payment.reference}</span>
+        </p>
+      )}
     </article>
   )
 }

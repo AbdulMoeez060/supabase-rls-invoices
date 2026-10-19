@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
-import { supabase, type Invoice, type InvoiceInput, type InvoiceStatus } from '../lib/supabase'
+import { supabase, type Invoice, type InvoiceInput, type InvoiceStatus, type Payment } from '../lib/supabase'
 
 type LoadState = 'loading' | 'ready' | 'error'
 
@@ -8,12 +8,17 @@ function sortNewestFirst(list: Invoice[]) {
   return [...list].sort((a, b) => b.created_at.localeCompare(a.created_at))
 }
 
+// Realtime rows don't carry the embedded payment, so keep the one already loaded.
 function upsert(list: Invoice[], row: Invoice) {
-  return sortNewestFirst([row, ...list.filter((i) => i.id !== row.id)])
+  const existing = list.find((i) => i.id === row.id)
+  const merged = { ...row, payment: row.payment ?? existing?.payment ?? null }
+  return sortNewestFirst([merged, ...list.filter((i) => i.id !== row.id)])
 }
 
+const WITH_PAYMENT = '*, payment:payments(*)'
+
 function fetchAll() {
-  return supabase.from('invoices').select('*').order('created_at', { ascending: false })
+  return supabase.from('invoices').select(WITH_PAYMENT).order('created_at', { ascending: false })
 }
 
 export function useInvoices(userId: string) {
@@ -56,6 +61,8 @@ export function useInvoices(userId: string) {
             const id = payload.old.id
             if (id) setInvoices((prev) => prev.filter((i) => i.id !== id))
             else reload()
+          } else if (payload.new.status === 'paid' && !latest.current.find((i) => i.id === payload.new.id)?.payment) {
+            reload()
           } else if (payload.new.id && payload.new.created_at) {
             setInvoices((prev) => upsert(prev, payload.new))
           } else {
@@ -86,7 +93,7 @@ export function useInvoices(userId: string) {
       const { data, error } = await supabase
         .from('invoices')
         .insert({ id: draft.id, ...values })
-        .select()
+        .select(WITH_PAYMENT)
         .single()
 
       if (error) {
@@ -104,7 +111,7 @@ export function useInvoices(userId: string) {
     if (!before) return
     setInvoices((prev) => upsert(prev, { ...before, ...patch }))
 
-    const { data, error } = await supabase.from('invoices').update(patch).eq('id', id).select().single()
+    const { data, error } = await supabase.from('invoices').update(patch).eq('id', id).select(WITH_PAYMENT).single()
 
     if (error) {
       setInvoices((prev) => upsert(prev, before))
@@ -127,5 +134,16 @@ export function useInvoices(userId: string) {
     }
   }, [])
 
-  return { invoices, state, loadError, reload, create, update, remove }
+  const pay = useCallback(async (id: string) => {
+    const { data, error } = await supabase.rpc('simulate_payment', { invoice_id: id }).single<Payment>()
+    if (error) throw error
+
+    setInvoices((prev) => {
+      const invoice = prev.find((i) => i.id === id)
+      return invoice ? upsert(prev, { ...invoice, status: 'paid', payment: data }) : prev
+    })
+    return data
+  }, [])
+
+  return { invoices, state, loadError, reload, create, update, remove, pay }
 }
